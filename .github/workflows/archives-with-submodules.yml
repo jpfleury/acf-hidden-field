@@ -1,0 +1,77 @@
+name: releases-with-submodules
+on: 
+  push:
+    tags:
+    - '*'
+env:
+  ARCHIVE_NAME: "${{github.event.repository.name}}.zip"
+  REPO_NAME: "ACF Hidden Field"
+  TMP_FOLDER: "${{github.workspace}}/tmp-folder"
+defaults:
+  run:
+    shell: bash
+jobs:
+  set-vars:
+    runs-on: ubuntu-latest
+    outputs:
+      archive_path: "${{env.TMP_FOLDER}}/${{env.ARCHIVE_NAME}}"
+      tag_name: ${{steps.vars.outputs.tag_name}}
+    steps:
+    - id: vars
+      run: |
+        echo "tag_name=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+  archive:
+    runs-on: ubuntu-latest
+    needs: set-vars
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{github.ref}}
+          fetch-depth: 0
+          submodules: true
+      - name: Create the temporary working folder
+        run: |
+          mkdir -p "${{env.TMP_FOLDER}}"
+      - name: Install dependencies
+        run: |
+          pip install git-archive-all
+          sudo apt-get update
+          sudo apt-get install -y hub
+      - name: Create the ZIP archive
+        run: |
+          git-archive-all "${{needs.set-vars.outputs.archive_path}}"
+      - name: Create a new release on GitHub
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          declare -A assets=(
+              [archive]="${{needs.set-vars.outputs.archive_path}}"
+              [hashes]="${{env.TMP_FOLDER}}/SHA256SUMS-${{github.event.repository.name}}.txt"
+          )
+          declare -A labels=(
+              [archive]="${{env.REPO_NAME}} - Wordpress plugin (zip)"
+              [hashes]="SHA256SUMS (txt)"
+          )
+          
+          prev_tag_name=$(git tag --sort=-committerdate | awk "/^${{needs.set-vars.outputs.tag_name}}$/{getline; print}")
+          
+          if [[ $prev_tag_name == ${{needs.set-vars.outputs.tag_name}} ]]; then
+            log_list=$(git log --pretty=reference)
+          else
+            log_list=$(git log --pretty=reference "$prev_tag_name..${{needs.set-vars.outputs.tag_name}}")
+          fi
+          
+          release_title="${{env.REPO_NAME}} ${{needs.set-vars.outputs.tag_name}}"
+          release_desc="**Changelog for ${{env.REPO_NAME}} ${{needs.set-vars.outputs.tag_name}}:**"$'\n'$'\n'
+          release_desc+=$(sed -e 's/^/- /' <<< "$log_list")$'\n'
+          
+          # Hashes
+          (cd "${{env.TMP_FOLDER}}" && sha256sum "${assets[archive]##*/}" > "${assets[hashes]}")
+          
+          # Release
+          hub release create \
+            -a "${assets[archive]}#${labels[archive]}" \
+            -a "${assets[hashes]}#${labels[hashes]}" \
+            -m "$release_title" \
+            -m "$release_desc" \
+            "${{needs.set-vars.outputs.tag_name}}"

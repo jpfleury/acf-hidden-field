@@ -1,0 +1,7 @@
+.editorconfig export-ignore
+.git export-ignore
+.gitattributes export-ignore
+.github export-ignore
+.gitignore export-ignore
+.gitmodules export-ignore
+includes/plugin-update-checker/examples  export-ignore
