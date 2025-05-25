@@ -1,4 +1,4 @@
-name: releases-with-submodules
+name: Release with submodules and changelog
 on: 
   push:
     tags:
@@ -36,7 +36,6 @@ jobs:
         run: |
           pip install git-archive-all
           sudo apt-get update
-          sudo apt-get install -y hub
       - name: Create the ZIP archive
         run: |
           git-archive-all "${{needs.set-vars.outputs.archive_path}}"
@@ -69,9 +68,8 @@ jobs:
           (cd "${{env.TMP_FOLDER}}" && sha256sum "${assets[archive]##*/}" > "${assets[hashes]}")
           
           # Release
-          hub release create \
-            -a "${assets[archive]}#${labels[archive]}" \
-            -a "${assets[hashes]}#${labels[hashes]}" \
-            -m "$release_title" \
-            -m "$release_desc" \
-            "${{needs.set-vars.outputs.tag_name}}"
+          gh release create "${{needs.set-vars.outputs.tag_name}}" \
+            "${assets[archive]}#${labels[archive]}" \
+            "${assets[hashes]}#${labels[hashes]}" \
+            --title "$release_title" \
+            --notes "$release_desc"
