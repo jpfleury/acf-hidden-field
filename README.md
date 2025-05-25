@@ -1,3 +1,5 @@
+[![release.yml](https://github.com/jpfleury/acf-hidden-field/actions/workflows/release.yml/badge.svg)](https://github.com/jpfleury/acf-hidden-field/releases)
+
 # ACF Hidden Field
 
 **ACF Hidden Field** is a WordPress plugin that adds a new hidden input field type to Advanced Custom Fields (ACF).
