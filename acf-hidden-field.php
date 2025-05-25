@@ -5,7 +5,7 @@
  * Description: Hidden input field type for ACF
  * Text Domain: acf-hidden-field
  * Author: Jean-Philippe Fleury
- * Version: 1.0.0
+ * Version: 1.0.1
  */
 
 namespace AcfHiddenField;
@@ -13,12 +13,6 @@ namespace AcfHiddenField;
 if (!defined('ABSPATH')) {
 	return;
 }
-
-################################################################################
-# @title Constants
-################################################################################
-
-define('ACF_HIDDEN_FIELD_VERSION', '1.0.0');
 
 ################################################################################
 # @title Inclusions

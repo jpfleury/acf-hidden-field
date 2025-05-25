@@ -22,7 +22,8 @@
 
 ## License
 
-ACF Hidden Field: Hidden input field type for ACF  
+ACF Hidden Field: Hidden input field type for ACF
+
 Copyright (C) 2025  Jean-Philippe Fleury
 
 This program is free software: you can redistribute it and/or modify
